@@ -102,7 +102,9 @@ func userManagedPolicies(username string, client iam.Client) {
 				panic(err)
 			}
 
-			fmt.Printf("(%v)\n", *policyOutput.Policy.Description)
+			if policyOutput.Policy.Description != nil {
+				fmt.Printf("(%v)\n", *policyOutput.Policy.Description)
+			}
 			// get policy version
 			policyVersion, err := client.GetPolicyVersion(context.TODO(), &iam.GetPolicyVersionInput{
 				PolicyArn: policy.PolicyArn,
