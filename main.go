@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
@@ -40,6 +41,18 @@ func main() {
 	app.RunAndExitOnError()
 }
 
+func printHeader(header string, level int) {
+	if level == 1 {
+		fmt.Println(header)
+		fmt.Println(strings.Repeat("=", len(header)))
+	} else if level == 2 {
+		fmt.Println(header)
+		fmt.Println(strings.Repeat("-", len(header)))
+	} else {
+		panic("Invalid header level")
+	}
+}
+
 func userInlinePolicies(username string, client iam.Client) {
 	inlinePolicies, err := client.ListUserPolicies(context.TODO(), &iam.ListUserPoliciesInput{
 		UserName: &username,
@@ -49,11 +62,13 @@ func userInlinePolicies(username string, client iam.Client) {
 	}
 
 	if len(inlinePolicies.PolicyNames) != 0 {
-		fmt.Printf("Inline policies for user: %v\n", username)
-		fmt.Println("=====================================")
+		header := fmt.Sprintf("Inline policies for user: %v", username)
+		printHeader(header, 1)
+
 		for _, policyName := range inlinePolicies.PolicyNames {
-			fmt.Println("Policy name: " + policyName)
-			fmt.Println("-------------------------------------")
+			header = fmt.Sprintf("Policy name: " + policyName)
+			printHeader(header, 2)
+			
 			policy, err := client.GetUserPolicy(context.TODO(), &iam.GetUserPolicyInput{
 				UserName:   &username,
 				PolicyName: &policyName,
@@ -89,11 +104,12 @@ func userManagedPolicies(username string, client iam.Client) {
 	}
 
 	if len(policies.AttachedPolicies) != 0 {
-		fmt.Printf("Attached policies for user: %v\n", username)
-		fmt.Println("=====================================")
+		header := fmt.Sprintf("Attached policies for user: %v", username)
+		printHeader(header, 1)
+
 		for _, policy := range policies.AttachedPolicies {
-			fmt.Println("Policy name: " + *policy.PolicyName)
-			fmt.Println("-------------------------------------")
+			header = fmt.Sprintf("Policy name: " + *policy.PolicyName)
+			printHeader(header, 2)
 
 			policyOutput, err := client.GetPolicy(context.TODO(), &iam.GetPolicyInput{
 				PolicyArn: policy.PolicyArn,
@@ -154,11 +170,12 @@ func groupInlinePolicies(groupName string, client iam.Client) {
 	}
 
 	if len(inlinePolicies.PolicyNames) != 0 {
-		fmt.Printf("Inline policies for group: %v\n", groupName)
-		fmt.Println("=====================================")
+		header := fmt.Sprintf("Inline policies for group: %v", groupName)
+		printHeader(header, 1)
+
 		for _, policyName := range inlinePolicies.PolicyNames {
-			fmt.Printf("Policy name: %v\n", policyName)
-			fmt.Println("-------------------------------------")
+			header = fmt.Sprintf("Policy name: %v", policyName)
+			printHeader(header, 2)
 			policy, err := client.GetGroupPolicy(context.TODO(), &iam.GetGroupPolicyInput{
 				GroupName:  &groupName,
 				PolicyName: &policyName,
@@ -194,11 +211,12 @@ func groupManagedPolicies(groupname string, client iam.Client) {
 	}
 
 	if len(policies.AttachedPolicies) != 0 {
-		fmt.Printf("Attached policies for group: %v\n", groupname)
-		fmt.Println("=====================================")
+		header := fmt.Sprintf("Attached policies for group: %v", groupname)
+		printHeader(header, 1)
+		
 		for _, policy := range policies.AttachedPolicies {
-			fmt.Println("Policy name: " + *policy.PolicyName)
-			fmt.Println("-------------------------------------")
+			header = fmt.Sprintf("Policy name: " + *policy.PolicyName)
+			printHeader(header, 2)
 
 			policyOutput, err := client.GetPolicy(context.TODO(), &iam.GetPolicyInput{
 				PolicyArn: policy.PolicyArn,
